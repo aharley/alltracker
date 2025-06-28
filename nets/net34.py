@@ -6,7 +6,14 @@ import numpy as np
 
 from nets.blocks import CNBlockConfig, ConvNeXt, conv1x1, RelUpdateBlock, InputPadder, CorrBlock, BasicEncoder
 
-class Net(nn.Module):
+from huggingface_hub import PyTorchModelHubMixin
+
+
+class Net(nn.Module, PyTorchModelHubMixin,
+          repo_url="https://github.com/aharley/alltracker",
+          paper_url="https://huggingface.co/papers/2506.07310",
+          tags=["tracking"],
+          license="mit"):
     def __init__(
             self,
             seqlen,
