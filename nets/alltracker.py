@@ -223,7 +223,7 @@ class Net(nn.Module):
                 fmaps_ = self.dot_conv(fmaps_) # B*T,C,H8,W8
         return fmaps_
     
-    def forward(self, images, iters=6, sw=None, is_training=False, stride=None):
+    def forward(self, images, iters=4, sw=None, is_training=False, stride=None):
         B,T,C,H,W = images.shape
         S = self.seqlen
         device = images.device
@@ -360,12 +360,18 @@ class Net(nn.Module):
             
         return full_flows, full_visconfs, all_flow_preds, all_visconf_preds
     
-    def forward_sliding(self, images, iters=6, sw=None, is_training=False, window_len=None, stride=None):
+    def forward_sliding(self, images, iters=4, sw=None, is_training=False, window_len=None, stride=None):
         B,T,C,H,W = images.shape
         S = self.seqlen if window_len is None else window_len
         device = images.device
         dtype = images.dtype
         stride = S // 2 if stride is None else stride
+
+        # images are in [0,255]
+        mean = torch.as_tensor([0.485, 0.456, 0.406], device=device).reshape(1,1,3,1,1).to(images.dtype)
+        std = torch.as_tensor([0.229, 0.224, 0.225], device=device).reshape(1,1,3,1,1).to(images.dtype)
+        images = images / 255.0
+        images = (images - mean)/std
 
         T_bak = T
         images, T, indices = self.get_T_padded_images(images, T, S, is_training, stride)
