@@ -128,12 +128,12 @@ def forward_video(rgbs, framerate, model, args):
     f_start_time = time.time()
 
     flows_e, visconf_maps_e, _, _ = \
-        model(rgbs[:, args.query_frame:], iters=args.inference_iters, sw=None, is_training=False)
-    traj_maps_e = flows_e + grid_xy # B,Tf,2,H,W
+        model.forward_sliding(rgbs[:, args.query_frame:], iters=args.inference_iters, sw=None, is_training=False)
+    traj_maps_e = flows_e.cuda() + grid_xy # B,Tf,2,H,W
     if args.query_frame > 0:
         backward_flows_e, backward_visconf_maps_e, _, _ = \
-            model(rgbs[:, :args.query_frame+1].flip([1]), iters=args.inference_iters, sw=None, is_training=False)
-        backward_traj_maps_e = backward_flows_e + grid_xy # B,Tb,2,H,W, reversed
+            model.forward_sliding(rgbs[:, :args.query_frame+1].flip([1]), iters=args.inference_iters, sw=None, is_training=False)
+        backward_traj_maps_e = backward_flows_e.cuda() + grid_xy # B,Tb,2,H,W, reversed
         backward_traj_maps_e = backward_traj_maps_e.flip([1])[:, :-1] # flip time and drop the overlapped frame
         backward_visconf_maps_e = backward_visconf_maps_e.flip([1])[:, :-1] # flip time and drop the overlapped frame
         traj_maps_e = torch.cat([backward_traj_maps_e, traj_maps_e], dim=1) # B,T,2,H,W
