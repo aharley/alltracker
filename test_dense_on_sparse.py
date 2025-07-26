@@ -48,7 +48,7 @@ def get_dataset(dname, args):
         from datasets import badjadataset
         dataset = badjadataset.BadjaDataset(
             data_root=os.path.join(args.dataset_root, 'badja2'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             only_first=False, 
         ) 
     elif dname=='cro':
@@ -56,7 +56,7 @@ def get_dataset(dname, args):
         from datasets import crohddataset
         dataset = crohddataset.CrohdDataset(
             data_root=os.path.join(args.dataset_root, 'crohd'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             seq_len=None,
             only_first=True,
             shuffle=False,
@@ -66,7 +66,7 @@ def get_dataset(dname, args):
         from datasets import davisdataset
         dataset = davisdataset.DavisDataset(
             data_root=os.path.join(args.dataset_root, 'tapvid_davis'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             only_first=False, 
         )
     elif dname=='dri':
@@ -74,7 +74,7 @@ def get_dataset(dname, args):
         from datasets import drivetrackdataset
         dataset = drivetrackdataset.DrivetrackDataset(
             data_root=os.path.join(args.dataset_root, 'drivetrack'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             seq_len=None,
             traj_per_sample=768,
             only_first=True, 
@@ -85,7 +85,7 @@ def get_dataset(dname, args):
         from datasets import egopointsdataset
         dataset = egopointsdataset.EgoPointsDataset(
             data_root=os.path.join(args.dataset_root, 'ego_points'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             only_first=True, 
         )
     elif dname=='hor':
@@ -93,7 +93,7 @@ def get_dataset(dname, args):
         from datasets import horsedataset
         dataset = horsedataset.HorseDataset(
             data_root=os.path.join(args.dataset_root, 'horse10/horse10'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             seq_len=None,
             only_first=True, 
             shuffle=False,
@@ -103,7 +103,7 @@ def get_dataset(dname, args):
         from datasets import kineticsdataset
         dataset = kineticsdataset.KineticsDataset(
             data_root=os.path.join(args.dataset_root, 'tapvid_kinetics'),
-            crop_size=args.crop_size, 
+            crop_size=args.image_size, 
             only_first=True, 
         )
     elif dname=='rgb':
@@ -111,7 +111,7 @@ def get_dataset(dname, args):
         from datasets import rgbstackingdataset
         dataset = rgbstackingdataset.RGBStackingDataset(
             data_root=os.path.join(args.dataset_root, 'tapvid_rgbs_stacking'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             only_first=False, 
         )
     elif dname=='rob':
@@ -119,7 +119,7 @@ def get_dataset(dname, args):
         from datasets import robotapdataset
         dataset = robotapdataset.RobotapDataset(
             data_root=os.path.join(args.dataset_root, 'robotap'),
-            crop_size=args.crop_size,
+            crop_size=args.image_size,
             only_first=True, 
         )
     return dataset, dataset_names
@@ -211,7 +211,7 @@ def forward_batch(batch, model, args, sw):
         pred_occluded=pred_occluded.cpu().numpy(),
         pred_tracks=pred_tracks.cpu().numpy(),
         query_mode='first',
-        crop_size=args.crop_size
+        crop_size=args.image_size
     )
     for thr in [1, 2, 4, 8, 16]:
         metrics['d_%d' % thr] = metrics['pts_within_' + str(thr)]
@@ -252,7 +252,7 @@ def run(dname, model, args):
 
     B_ = args.batch_size * torch.cuda.device_count()
     assert(B_==1)
-    model_name = "%dx%d" % (int(args.crop_size[0]), int(args.crop_size[1]))
+    model_name = "%dx%d" % (int(args.image_size[0]), int(args.image_size[1]))
     model_name += "i%d" % (args.inference_iters)
     model_name += "_%s" % args.init_dir
     model_name += "_%s" % dname
@@ -392,7 +392,7 @@ if __name__ == "__main__":
     parser.add_argument("--inference_iters", type=int, default=4)
     parser.add_argument("--window_len", type=int, default=16)
     parser.add_argument("--stride", type=int, default=8)
-    parser.add_argument("--crop_size", nargs="+", default=[384, 512]) # really a resizing arg
+    parser.add_argument("--image_size", nargs="+", default=[384, 512]) # resizing arg
     parser.add_argument("--backwards", default=False)
     parser.add_argument("--mixed_precision", action='store_true', default=False)
     parser.add_argument("--only_first", action='store_true', default=False)
@@ -408,7 +408,7 @@ if __name__ == "__main__":
     if args.dname is None:
         args.dname = ['bad', 'cro', 'dav', 'dri', 'hor', 'kin', 'rgb', 'rob']
     dataset_names = args.dname
-    args.crop_size = [int(args.crop_size[0]), int(args.crop_size[1])]
+    args.image_size = [int(args.image_size[0]), int(args.image_size[1])]
     full_start_time = time.time()
 
     from nets.alltracker import Net; model = Net(16)
