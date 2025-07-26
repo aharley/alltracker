@@ -118,7 +118,23 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7; python train_stage2.py  --mixed_pre
 
 ## Evaluation
 
-(Still cleaning the code here.)
+Test the model on point tracking datasets with a command like:
+
+```
+python test_dense_on_sparse.py --dname 'dav'
+```
+
+At the end, you should see:
+```
+da: 76.3,
+aj: 63.3,
+oa: 90.0,
+```
+which represent `d_avg` (accuracy), Average Jaccard, and Occlusion Accuracy. We find that small numerical issues (even across GPUs) may cause +- 0.1 fluctuation on these metrics.
+
+Test it at higher resolution with the `image_size` arg, like: `--image_size 448 768`, which should produce `da: 78.8, aj: 65.9, oa: 90.2` or `--image_size 768 1024`, which should produce `da: 80.6, aj: 67.2, oa: 89.7`. 
+
+(Other datasets will be added shortly.)
 
 
 ## Citation
