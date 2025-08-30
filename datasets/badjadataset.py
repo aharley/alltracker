@@ -13,7 +13,7 @@ import pandas as pd
 class BadjaDataset(PointDataset):
     def __init__(
             self,
-            data_root='../badja',
+            data_root='../datasets/badja',
             crop_size=(384,512),
             seq_len=None,
             only_first=False,
@@ -25,6 +25,7 @@ class BadjaDataset(PointDataset):
         )
 
         self.dname = 'badja'
+        self.seq_len = seq_len
         self.only_first = only_first
         
         npzs = glob.glob('%s/complete_aa/*.npz' % self.data_root)

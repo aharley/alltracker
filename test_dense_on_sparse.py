@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import argparse
-from lightning_fabric import Fabric 
 import utils.loss
 import utils.data
 import utils.improc
@@ -26,7 +25,7 @@ def count_parameters(model):
         param = parameter.numel()
         if param > 100000:
             table.add_row([name, param])
-        total_params+=param
+        total_params += param
     # print(table)
     print('total params: %.2f M' % (total_params/1000000.0))
     return total_params
@@ -142,6 +141,9 @@ def forward_batch(batch, model, args, sw):
     vis_g = batch.visibs
     valids = batch.valids
     dname = batch.dname
+    # print('rgbs', rgbs.shape, rgbs.dtype, rgbs.device)
+    # print('trajs_g', trajs_g.shape, trajs_g.device)
+    # print('vis_g', vis_g.shape, vis_g.device)
     
     B, T, C, H, W = rgbs.shape
     assert C == 3
@@ -224,15 +226,6 @@ def forward_batch(batch, model, args, sw):
 
 
 def run(dname, model, args):
-    fabric = Fabric(
-        devices="auto",
-        num_nodes=1,
-        strategy="ddp",
-        accelerator="cuda",
-        precision="bf16-mixed" if args.mixed_precision else "32-true",
-    )
-    fabric.launch() # enable multi-gpu
-    
     def seed_everything(seed: int):
         random.seed(seed)
         os.environ["PYTHONHASHSEED"] = str(seed)
@@ -287,7 +280,7 @@ def run(dname, model, args):
     if args.init_dir:
         load_dir = '%s/%s' % (args.ckpt_dir, args.init_dir)
         _ = utils.saveload.load(
-            fabric,
+            None,
             load_dir,
             model,
             optimizer=None,
@@ -297,10 +290,7 @@ def run(dname, model, args):
             verbose=False,
             weights_only=False,
         )
-
     model.cuda()
-    model = fabric.setup(model, move_to_device=False)
-    model.mark_forward_method('forward_sliding')
     for n, p in model.named_parameters():
         p.requires_grad = False
     model.eval()
@@ -381,7 +371,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", default=exp)
-    parser.add_argument("--dname", type=str, nargs='+', default=None, help="Dataset names as a single string or list of strings")
+    parser.add_argument("--dname", type=str, nargs='+', default=None, help="Dataset names, written as a single string or list of strings")
     parser.add_argument("--init_dir", type=str, default=init_dir)
     parser.add_argument("--ckpt_dir", type=str, default='')
     parser.add_argument("--batch_size", type=int, default=1)
@@ -425,10 +415,13 @@ if __name__ == "__main__":
         das.append(da)
         ajs.append(aj)
         oas.append(oa)
-    for (nums, name) in zip([das, ajs, oas], ['da', 'aj', 'oa']):
+    for (data, name) in zip([dataset_names, das, ajs, oas], ['dn', 'da', 'aj', 'oa']):
         st = name + ': '
-        for num in nums:
-            st += '%.1f,' % num
+        for dat in data:
+            if isinstance(dat, str):
+                st += '%s,' % dat
+            else:
+                st += '%.1f,' % dat
         print(st)
     full_time = time.time()-full_start_time
     print('full_time %.1f' % full_time)        
