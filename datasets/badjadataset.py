@@ -1,4 +1,3 @@
-from numpy import random
 import torch
 import numpy as np
 from datasets.pointdataset import PointDataset
@@ -117,10 +116,7 @@ class BadjaDataset(PointDataset):
             dname=self.dname,
         )
         return sample, True
-
         
     def __len__(self):
         return len(self.animal_names)
-
-
     

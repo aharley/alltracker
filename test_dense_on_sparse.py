@@ -58,7 +58,6 @@ def get_dataset(dname, args):
             crop_size=args.image_size,
             seq_len=None,
             only_first=True,
-            shuffle=False,
         )
     elif dname=='dav':
         dataset_names = ['dav']
@@ -77,7 +76,6 @@ def get_dataset(dname, args):
             seq_len=None,
             traj_per_sample=768,
             only_first=True, 
-            shuffle=False,
         )
     elif dname=='ego':
         dataset_names = ['ego']
@@ -91,11 +89,10 @@ def get_dataset(dname, args):
         dataset_names = ['hor']
         from datasets import horsedataset
         dataset = horsedataset.HorseDataset(
-            data_root=os.path.join(args.dataset_root, 'horse10/horse10'),
+            data_root=os.path.join(args.dataset_root, 'horse10'),
             crop_size=args.image_size,
             seq_len=None,
             only_first=True, 
-            shuffle=False,
         )
     elif dname=='kin':
         dataset_names = ['kin']
