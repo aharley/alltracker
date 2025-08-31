@@ -65,14 +65,14 @@ class KineticsDataset(PointDataset):
 
         rgbs = torch.from_numpy(np.stack(rgbs,0)).permute(0,3,1,2).contiguous().float() # S,C,H,W
         trajs = torch.from_numpy(trajs).float() # S,N,2
+        visibs = torch.from_numpy(visibs).float() # S,N
         valids = torch.from_numpy(valids).float() # S,N
 
         sample = utils.data.VideoData(
             video=rgbs,
             trajs=trajs,
-            valids=valids, # double-use
-            visibs=valids,
-            seq_name=None,
+            visibs=visibs,
+            valids=valids, 
             dname=self.dname,
         )
         return sample, True
