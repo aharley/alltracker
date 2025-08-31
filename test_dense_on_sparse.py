@@ -106,7 +106,7 @@ def get_dataset(dname, args):
         dataset_names = ['rgb']
         from datasets import rgbstackingdataset
         dataset = rgbstackingdataset.RGBStackingDataset(
-            data_root=os.path.join(args.dataset_root, 'tapvid_rgbs_stacking'),
+            data_root=os.path.join(args.dataset_root, 'tapvid_rgb_stacking'),
             crop_size=args.image_size,
             only_first=False, 
         )
