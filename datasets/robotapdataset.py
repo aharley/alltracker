@@ -64,7 +64,6 @@ class RobotapDataset(PointDataset):
         trajs = torch.from_numpy(trajs).float() # S,N,2
         visibs = torch.from_numpy(visibs).float() # S,N
         valids = torch.from_numpy(valids).float() # S,N
-        # print('rgbs', rgbs.shape)
 
         if self.seq_len is not None:
             rgbs = rgbs[:self.seq_len]
