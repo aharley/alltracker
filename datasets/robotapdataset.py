@@ -54,43 +54,6 @@ class RobotapDataset(PointDataset):
         rgbs, trajs, visibs, valids = utils.data.standardize_test_data(
             rgbs, trajs, visibs, valids, only_first=self.only_first, seq_len=self.seq_len)
         
-
-        # # fill in missing data
-        # N = trajs.shape[1]
-        # for ni in range(N):
-        #     trajs[:,ni] = utils.data.data_replace_with_nearest(trajs[:,ni], valids[:,ni])
-
-        # if self.seq_len is not None:
-        #     S = min(len(rgbs), self.seq_len)
-        # else:
-        #     S = len(rgbs)
-        # S = min(S, 200)
-        
-        # if self.only_first:
-        #     # we'll find the best frame to start on
-        #     best_count = 0
-        #     best_ind = 0
-        #     for si in range(1,len(rgbs)-S):
-        #         # try this slice
-        #         trajs_ = trajs[si:si+S]
-        #         visibs_ = visibs[si:si+S]
-        #         vis_ok0 = visibs_[0] > 0  # N
-        #         all_ok = vis_ok0# & vis_okE# & mot_ok
-        #         if np.sum(all_ok) > best_count:
-        #             best_count = np.sum(all_ok)
-        #             best_ind = si
-        #     si = best_ind
-        #     si = 0
-        #     rgbs = rgbs[si:si+S]
-        #     trajs = trajs[si:si+S]
-        #     visibs = visibs[si:si+S]
-        #     valids = valids[si:si+S]
-        #     vis_ok0 = visibs[0] > 0  # N
-        #     trajs = trajs[:,vis_ok0]
-        #     visibs = visibs[:,vis_ok0]
-        #     valids = valids[:,vis_ok0]
-        # N = trajs.shape[1]
-
         rgbs = [cv2.resize(rgb, (self.crop_size[1], self.crop_size[0]), interpolation=cv2.INTER_LINEAR) for rgb in rgbs]
         # 1.0,1.0 should lie at the bottom-right corner pixel
         H, W = rgbs[0].shape[:2]
@@ -108,19 +71,6 @@ class RobotapDataset(PointDataset):
             trajs = trajs[:self.seq_len]
             valids = valids[:self.seq_len]
             visibs = visibs[:self.seq_len]
-
-        if len(rgbs) > 200:
-            # print('trimming past 200 frames, to not crash the exps')
-            rgbs = rgbs[:200]
-            trajs = trajs[:200]
-            valids = valids[:200]
-            visibs = visibs[:200]
-
-        # req at least one timestep valid
-        val_ok = torch.sum(valids, axis=0) > 0
-        trajs = trajs[:,val_ok]
-        valids = valids[:,val_ok]
-        visibs = visibs[:,val_ok]
 
         sample = utils.data.VideoData(
             video=rgbs,
