@@ -216,7 +216,10 @@ def run(model, args):
         )
         print('loaded weights from', args.ckpt_init)
     else:
-        url = "https://huggingface.co/aharley/alltracker/resolve/main/alltracker.pth"
+        if args.tiny:
+            url = "https://huggingface.co/aharley/alltracker/resolve/main/alltracker_tiny.pth"
+        else:
+            url = "https://huggingface.co/aharley/alltracker/resolve/main/alltracker.pth"
         state_dict = torch.hub.load_state_dict_from_url(url, map_location='cpu')
         model.load_state_dict(state_dict['model'], strict=True)
         print('loaded weights from', url)
@@ -233,8 +236,7 @@ def run(model, args):
     # shorten & shrink the video, in case the gpu is small
     if args.max_frames:
         rgbs = rgbs[:args.max_frames]
-    HH = 1024
-    scale = min(HH/H, HH/W)
+    scale = min(int(args.image_size)/H, int(args.image_size)/W)
     H, W = int(H*scale), int(W*scale)
     H, W = H//8 * 8, W//8 * 8 # make it divisible by 8
     rgbs = [cv2.resize(rgb, dsize=(W, H), interpolation=cv2.INTER_LINEAR) for rgb in rgbs]
@@ -257,6 +259,7 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt_init", type=str, default='') # the ckpt we want (else default)
     parser.add_argument("--mp4_path", type=str, default='./demo_video/monkey.mp4') # input video 
     parser.add_argument("--query_frame", type=int, default=0) # which frame to track from
+    parser.add_argument("--image_size", type=int, default=1024) # max dimension of a video frame (upsample to this)
     parser.add_argument("--max_frames", type=int, default=400) # trim the video to this length
     parser.add_argument("--inference_iters", type=int, default=4) # number of inference steps per forward
     parser.add_argument("--window_len", type=int, default=16) # model hyperparam
@@ -265,9 +268,14 @@ if __name__ == "__main__":
     parser.add_argument("--bkg_opacity", type=float, default=0.5) # vis hyp
     parser.add_argument("--vstack", action='store_true', default=False) # whether to stack the input and output in the mp4
     parser.add_argument("--hstack", action='store_true', default=False) # whether to stack the input and output in the mp4
+    parser.add_argument("--tiny", action='store_true', default=False) # whether to use the tiny model
     args = parser.parse_args()
 
-    from nets.alltracker import Net; model = Net(args.window_len)
+    from nets.alltracker import Net;
+    if args.tiny:
+        model = Net(args.window_len, use_basicencoder=True, no_split=True)
+    else:
+        model = Net(args.window_len)
     count_parameters(model)
 
     run(model, args)
