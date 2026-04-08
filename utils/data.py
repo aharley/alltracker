@@ -89,6 +89,7 @@ class VideoData:
     trajs: torch.Tensor  # B,S,N,2
     visibs: torch.Tensor  # B,S,N
     valids: Optional[torch.Tensor] = None  # B,S,N
+    seq_name: Optional[str] = None
     dname: Optional[str] = None
 
 
